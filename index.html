@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>قائمة الطلبيات</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+:root{
+  --bg:#171310;
+  --card:#211c15;
+  --card-hi:#2b241a;
+  --ink:#f3ecdf;
+  --ink-soft:#a4977f;
+  --ink-dim:#7a6f5c;
+  --line:#3a3122;
+  --amber:#e8a53d;
+  --amber-dim:#5a4726;
+  --chili:#dd5a34;
+  --avocado:#93b354;
+  --avocado-soft:#2a301c;
+  --danger:#c1503a;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:'Manrope',sans-serif;-webkit-tap-highlight-color:transparent;}
+body{min-height:100vh; padding-bottom:118px;}
+.wrap{max-width:520px;margin:0 auto;padding:20px 16px 0;}
+
+/* Header */
+.head{
+  position:relative; border-radius:18px; padding:22px 20px 18px; overflow:hidden;
+  background:linear-gradient(155deg, #221c14 0%, #1b160f 100%);
+  border:1px solid var(--line);
+}
+.head::before{
+  content:""; position:absolute; top:-60px; left:-40px; width:220px; height:220px; border-radius:50%;
+  background:radial-gradient(circle, rgba(232,165,61,0.28) 0%, rgba(232,165,61,0) 70%);
+  pointer-events:none;
+}
+.head-row{display:flex; align-items:flex-start; justify-content:space-between; gap:12px; position:relative;}
+.eyebrow{font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:.18em; color:var(--amber); text-transform:uppercase;}
+.title{font-family:'Anton',sans-serif; font-size:30px; font-weight:400; letter-spacing:.01em; margin:4px 0 0; color:var(--ink); line-height:1;}
+.date-pill{
+  font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:600; color:var(--bg);
+  background:var(--amber); border-radius:20px; padding:6px 13px; white-space:nowrap; margin-top:2px;
+}
+.stats{display:flex; gap:18px; margin-top:16px; position:relative;}
+.stat{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-dim); text-transform:uppercase; letter-spacing:.06em;}
+.stat b{display:block; font-family:'Anton',sans-serif; font-size:22px; color:var(--ink); letter-spacing:0; margin-top:1px;}
+
+/* Tabs */
+.tabs{display:flex; gap:8px; margin-top:16px; overflow-x:auto; padding:2px 2px 4px; -webkit-overflow-scrolling:touch;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{
+  font-family:'Manrope',sans-serif; font-size:13px; font-weight:700; padding:9px 16px; border-radius:22px;
+  border:1.5px solid var(--line); background:var(--card); color:var(--ink-soft); white-space:nowrap; cursor:pointer; flex-shrink:0;
+  transition:all .15s;
+}
+.tab.active{color:var(--bg); border-color:transparent;}
+.tab.combined{display:flex; align-items:center; gap:6px;}
+.tab.combined::before{content:"⛓"; font-size:11px;}
+.tab.add{border-style:dashed; color:var(--amber); border-color:var(--amber-dim); background:transparent;}
+
+/* Search */
+.search-row{display:flex; gap:8px; margin-top:16px;}
+.search-box{flex:1; position:relative;}
+.search-box input{
+  width:100%; border:1px solid var(--line); background:var(--card); border-radius:10px;
+  padding:11px 36px 11px 12px; font-size:14px; color:var(--ink); direction:rtl;
+}
+.search-box input::placeholder{color:var(--ink-dim);}
+.search-box .icon{position:absolute; right:12px; top:50%; transform:translateY(-50%); font-size:13px; color:var(--ink-dim);}
+.hist-btn{
+  width:40px; height:40px; border-radius:10px; background:var(--card); border:1px solid var(--line);
+  color:var(--ink-soft); font-size:16px; cursor:pointer; flex-shrink:0;
+}
+
+/* Categories */
+.cat{margin-top:20px;}
+.cat-head{display:flex; align-items:center; gap:10px; margin-bottom:9px; padding:0 2px; cursor:pointer;}
+.cat-name{
+  font-family:'Anton',sans-serif; font-size:15px; font-weight:400; letter-spacing:.04em; text-transform:uppercase;
+  color:var(--amber); flex:1; padding-bottom:5px; border-bottom:2px solid var(--amber-dim);
+}
+.cat-name[contenteditable="true"]{outline:none; border-bottom-color:var(--chili);}
+.cat-chevron{font-size:11px; color:var(--ink-dim); transition:transform .15s; padding-bottom:5px;}
+.cat.collapsed .cat-chevron{transform:rotate(-90deg);}
+.cat.collapsed .cat-body{display:none;}
+.cat-del{background:none; border:none; color:var(--ink-dim); font-size:11px; cursor:pointer; padding:4px 2px 6px;}
+.cat-del:hover{color:var(--danger);}
+
+.item{background:var(--card); border:1px solid var(--line); border-radius:12px; margin-bottom:8px; overflow:hidden; transition:border-color .15s, background .15s;}
+.item.on{border-color:var(--avocado); background:var(--card-hi);}
+.item-row{display:flex; align-items:center; gap:12px; padding:13px 14px; cursor:pointer;}
+.check{
+  width:22px; height:22px; border-radius:50%; border:1.5px solid var(--line); flex-shrink:0;
+  display:flex; align-items:center; justify-content:center; font-size:12px; color:transparent; background:var(--bg);
+}
+.item.on .check{background:var(--avocado); border-color:var(--avocado); color:var(--bg);}
+.item-name{flex:1; font-size:15px; font-weight:600; direction:ltr; text-align:right; unicode-bidi:plaintext;}
+.item-edit-btn{background:none;border:none;color:var(--ink-dim);font-size:14px;cursor:pointer;padding:4px 6px;}
+.item-edit-btn:hover{color:var(--danger);}
+.item-field{display:none; padding:0 14px 12px 14px; direction:ltr;}
+.item.on .item-field.has-field{display:flex; gap:7px; align-items:center;}
+.item-field.missing input{border-color:var(--chili); box-shadow:0 0 0 1px var(--chili);}
+.required-mark{color:var(--chili); margin-inline-start:3px; font-weight:700;}
+.required-hint{color:var(--chili); font-size:12.5px; text-align:center; padding:6px 14px 2px 14px;}
+.item[draggable="true"]{cursor:grab;}
+.item.dragging{opacity:.35;}
+.drag-handle{color:var(--ink-dim); font-size:14px; padding:0 4px; cursor:grab; user-select:none;}
+.item-field input{
+  font-family:'IBM Plex Mono',monospace; font-size:14px; border:1px solid var(--line); border-radius:6px;
+  padding:8px 10px; width:90px; background:var(--bg); color:var(--ink);
+}
+.item-field .suffix{font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:var(--ink-dim);}
+.item-tags{display:flex; gap:5px; flex-wrap:wrap; padding:0 14px 11px; direction:ltr;}
+.item-tag{
+  font-family:'IBM Plex Mono',monospace; font-size:10px; padding:3px 9px; border-radius:10px; border:1px solid var(--line);
+  color:var(--ink-dim); cursor:pointer; background:var(--bg);
+}
+.item-tag.member{background:var(--avocado-soft); border-color:var(--avocado); color:var(--avocado);}
+
+.yield-note{
+  font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--avocado); direction:ltr; padding:0 14px 12px;
+}
+.yield-note b{font-size:14px;}
+.yield-note.empty{display:none;}
+
+.fav-btn{font-size:17px; padding:2px 6px;}
+.fav-btn.on{color:var(--amber);}
+.sug-box{margin-top:16px; background:var(--card); border:1px solid var(--amber-dim); border-radius:12px; padding:12px 12px 12px;}
+.sug-head{display:flex; align-items:center; justify-content:space-between; gap:8px; cursor:pointer; font-size:13px; font-weight:700; color:var(--amber);}
+.sug-all{border:none; background:var(--amber); color:var(--bg); border-radius:8px; padding:5px 11px; font-size:12px; font-weight:800; cursor:pointer;}
+.sug-chips{display:flex; flex-wrap:wrap; gap:7px; margin-top:10px; direction:ltr;}
+.sug-box.collapsed .sug-chips{display:none;}
+.sug-chip{border:1px solid var(--line); background:var(--bg); color:var(--ink); border-radius:10px; padding:7px 10px; cursor:pointer; text-align:left; font-family:'Manrope',sans-serif; display:flex; flex-direction:column; gap:2px;}
+.sug-chip .n{font-size:13px; font-weight:700;}
+.sug-chip .r{font-size:10.5px; color:var(--ink-dim); direction:rtl; unicode-bidi:plaintext;}
+.sug-note{margin-top:14px; font-size:11.5px; color:var(--ink-dim); text-align:center;}
+.toggle-row{display:flex; align-items:center; gap:8px; font-size:13px; color:var(--ink-soft); margin:0 0 12px; cursor:pointer;}
+.toggle-row input{accent-color:var(--avocado); width:18px; height:18px;}
+.cat-ru-input{width:100%; margin:-2px 0 10px; border:1px dashed var(--line); background:transparent; color:var(--ink-soft); border-radius:8px; padding:6px 10px; font-size:12px; direction:ltr; text-align:left;}
+
+/* combined preview */
+.combo-breakdown{
+  padding:0 14px 12px 14px; direction:ltr; font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--ink-dim);
+}
+.combo-breakdown b{color:var(--amber);}
+.combo-hint{
+  text-align:center; color:var(--ink-dim); font-size:13px; padding:26px 10px; line-height:1.7;
+}
+
+.add-item{display:flex; flex-direction:column; gap:9px; margin-top:6px; background:var(--card); border:1px dashed var(--line); border-radius:12px; padding:12px;}
+.add-item .row1{display:flex; gap:8px;}
+.add-item input[type=text]{
+  flex:1; border:1px solid var(--line); background:var(--bg); border-radius:8px; padding:9px 11px;
+  font-size:14px; color:var(--ink); direction:ltr; text-align:right;
+}
+.add-item select{border:1px solid var(--line); background:var(--bg); border-radius:8px; font-size:12px; color:var(--ink-soft); padding:0 6px;}
+.item-mode-select{border:1px solid var(--line); background:var(--bg); border-radius:8px; font-size:12px; color:var(--ink-soft); padding:4px 6px;}
+.item-unit-input{border:1px solid var(--line); background:var(--bg); border-radius:8px; font-size:12px; color:var(--ink-soft); padding:4px 8px;}
+.add-item .add-btn{border:none; background:var(--avocado); color:var(--bg); border-radius:8px; width:40px; font-size:18px; cursor:pointer; flex-shrink:0; font-weight:700;}
+.add-item .row2{display:flex; gap:6px; flex-wrap:wrap;}
+
+.add-cat-row{margin-top:22px; display:flex; gap:8px;}
+.add-cat-row input{
+  flex:1; border:1px solid var(--line); background:var(--card); border-radius:10px; padding:11px 12px;
+  font-family:'Manrope',sans-serif; font-weight:700; font-size:13px; color:var(--ink); direction:rtl;
+}
+.add-cat-row button{border:none; background:var(--amber); color:var(--bg); border-radius:10px; padding:0 18px; font-size:13px; cursor:pointer; font-weight:800;}
+
+/* Bottom bar */
+.bar{
+  position:fixed; left:0; right:0; bottom:0; z-index:20; background:var(--card); border-top:1px solid var(--line);
+  padding:12px 16px calc(12px + env(safe-area-inset-bottom));
+}
+.bar-inner{max-width:520px; margin:0 auto; display:flex; gap:8px;}
+.btn-repeat{
+  background:var(--bg); color:var(--ink-soft); border:1.5px solid var(--line); border-radius:12px; padding:0 14px;
+  font-size:13px; font-weight:700; cursor:pointer; white-space:nowrap;
+}
+.btn-generate{
+  flex:1; border:none; border-radius:12px; padding:15px; font-size:15px; font-weight:800; letter-spacing:.01em; cursor:pointer;
+  background:var(--amber); color:var(--bg);
+}
+.btn-generate.combo-mode{background:var(--avocado);}
+.btn-generate:disabled{background:var(--line); color:var(--ink-dim); cursor:default;}
+
+/* Overlay/modal */
+.overlay{position:fixed; inset:0; background:rgba(10,8,5,0.7); z-index:30; display:none; align-items:flex-end; justify-content:center;}
+.overlay.show{display:flex;}
+.modal{background:var(--bg); width:100%; max-width:520px; border-radius:20px 20px 0 0; padding:22px 18px calc(20px + env(safe-area-inset-bottom)); max-height:85vh; overflow-y:auto; border-top:1px solid var(--line);}
+.modal h2{font-family:'Anton',sans-serif; font-weight:400; font-size:20px; margin:0 0 4px; color:var(--amber);}
+.modal p.sub{font-size:12px; color:var(--ink-dim); margin:0 0 14px; font-family:'IBM Plex Mono',monospace;}
+.output-box{
+  background:var(--card); border:1px solid var(--line); border-radius:12px; padding:15px;
+  font-family:'IBM Plex Mono',monospace; font-size:14px; line-height:1.9; direction:ltr; text-align:right;
+  width:100%; min-height:170px; resize:vertical; color:var(--ink);
+}
+.modal-actions{display:flex; gap:10px; margin-top:14px;}
+.modal-actions button{flex:1; border:none; border-radius:10px; padding:13px; font-size:14px; font-weight:700; cursor:pointer;}
+.btn-copy{background:var(--card-hi); color:var(--ink); border:1px solid var(--line);}
+.btn-share{background:var(--avocado); color:var(--bg);}
+.btn-close{display:block; margin:16px auto 0; background:none; border:none; color:var(--ink-dim); font-size:13px; cursor:pointer;}
+
+.hist-row{
+  background:var(--card); border:1px solid var(--line); border-radius:12px; padding:13px; margin-bottom:8px;
+  display:flex; align-items:center; gap:10px; cursor:pointer;
+}
+.hist-row .hd{flex:1; min-width:0;}
+.hist-row .hdate{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--amber); font-weight:700;}
+.hist-row .hpreview{font-size:12px; color:var(--ink-dim); margin-top:3px; direction:ltr; text-align:right; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.hist-empty{text-align:center; color:var(--ink-dim); font-size:13px; padding:34px 0;}
+
+.toast{
+  position:fixed; bottom:104px; left:50%; transform:translateX(-50%); background:var(--card-hi); color:var(--ink);
+  border:1px solid var(--line); padding:10px 18px; border-radius:24px; font-size:13px; z-index:40; opacity:0; pointer-events:none; transition:opacity .2s;
+}
+.toast.show{opacity:1;}
+
+.gear-btn{
+  position:fixed; top:18px; left:16px; z-index:15; width:40px; height:40px; border-radius:50%;
+  background:var(--card); border:1px solid var(--line); display:flex; align-items:center; justify-content:center;
+  font-size:16px; cursor:pointer; color:var(--ink-soft);
+}
+</style>
+</head>
+<body>
+
+<button class="gear-btn" id="gearBtn" title="تعديل القائمة">⚙︎</button>
+<button class="gear-btn" id="backupBtn" title="نسخة احتياطية" style="left:64px;">💾</button>
+
+<div class="wrap">
+  <div class="head">
+    <div class="head-row">
+      <div>
+        <div class="eyebrow">قائمة توريد يومية</div>
+        <div class="title">الطلبيات</div>
+      </div>
+      <div class="date-pill" id="dateStamp"></div>
+    </div>
+    <div class="stats">
+      <div class="stat">مختار<b id="countSel">0</b></div>
+      <div class="stat">حرف<b id="countChar">0</b></div>
+    </div>
+    <div class="tabs" id="tabs"></div>
+  </div>
+
+  <div class="search-row">
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="بحث عن صنف...">
+      <span class="icon">🔍</span>
+    </div>
+    <button class="hist-btn" id="histBtn" title="السجل">🕘</button>
+  </div>
+
+  <div id="categories"></div>
+
+  <div class="add-cat-row" id="addCatRow" style="display:none;">
+    <input id="newCatName" placeholder="اسم فئة جديدة">
+    <button id="addCatBtn">+ فئة</button>
+  </div>
+</div>
+
+<div class="bar">
+  <div class="bar-inner">
+    <button class="btn-repeat" id="repeatBtn">↺ سابق</button>
+    <button class="btn-generate" id="genBtn" disabled>إنشاء نص الطلب</button>
+  </div>
+  <div class="required-hint" id="requiredHint" style="display:none;"></div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h2>نص الطلب جاهز</h2>
+    <p class="sub">يمكنك تعديله يدويًا قبل الإرسال</p>
+    <label class="toggle-row" id="headingsRow"><input type="checkbox" id="headingsToggle"><span>ترتيب حسب الفئات (عناوين بالروسية)</span></label>
+    <textarea class="output-box" id="outputBox"></textarea>
+    <div class="modal-actions">
+      <button class="btn-copy" id="copyBtn">نسخ النص</button>
+      <button class="btn-share" id="shareBtn">مشاركة</button>
+    </div>
+    <button class="btn-close" id="closeBtn">إغلاق</button>
+  </div>
+</div>
+
+<div class="overlay" id="histOverlay">
+  <div class="modal">
+    <h2>سجل الطلبات السابقة</h2>
+    <p class="sub" id="histSub"></p>
+    <div id="histList"></div>
+    <button class="btn-close" id="histCloseBtn">إغلاق</button>
+  </div>
+</div>
+
+<div class="overlay" id="backupOverlay">
+  <div class="modal">
+    <h2>نسخة احتياطية</h2>
+    <p class="sub">كل البيانات محفوظة تلقائيًا بهذا الجهاز. تقدر تصدّرها كملف لحفظها أو نقلها لجهاز آخر.</p>
+    <div class="modal-actions" style="flex-direction:column; gap:10px;">
+      <button class="btn-copy" id="exportBtn">⬇︎ تصدير نسخة احتياطية (JSON)</button>
+      <button class="btn-share" id="importBtn">⬆︎ استيراد نسخة احتياطية</button>
+      <input type="file" id="importFile" accept="application/json" style="display:none;">
+      <button class="btn-share" id="clearLastBtn" style="background:transparent; border:1px solid var(--chili); color:var(--chili);">🗑 مسح آخر طلب محفوظ لهذا المطعم</button>
+    </div>
+    <button class="btn-close" id="backupCloseBtn">إغلاق</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const CATALOG_KEY = 'catalog-v3';
+const COMBINED_ID = '__combined__';
+const TAB_COLORS = ['#e8a53d', '#dd5a34', '#7fa3c4', '#c48ad9'];
+let editMode = false;
+let searchQuery = '';
+let lastGroups = null;
+const collapsedCats = new Set();
+
+const defaultCatalog = {
+  restaurants: [ { id:'lavash', name:'Лаваш Ну' }, { id:'tacos', name:'Тасо' } ],
+  categories: [
+    { id:'cat-meat', name:'اللحوم', items:[
+      { id:'i-friji', name:'Филе курицы', mode:'amount', unit:'кг', restaurants:['lavash'], required:true, yield:0.75 },
+      { id:'i-beef', name:'Говядина', mode:'amount', unit:'кг', restaurants:['tacos'] },
+      { id:'i-shrimp', name:'Креветки', mode:'amount', unit:'кг', restaurants:['tacos'] },
+    ]},
+    { id:'cat-veg', name:'الخضروات', items:[
+      { id:'i-pekin', name:'Пекинская капуста', mode:'none', unit:'', restaurants:['lavash'] },
+      { id:'i-kapusta', name:'Капуста', mode:'none', unit:'', restaurants:['lavash'] },
+      { id:'i-tomato', name:'Помидор', mode:'none', unit:'', restaurants:['lavash','tacos'] },
+      { id:'i-ogurec', name:'Огурец', mode:'none', unit:'', restaurants:['lavash'] },
+      { id:'i-ukrop', name:'Укроп', mode:'none', unit:'', restaurants:['lavash'] },
+      { id:'i-petrushka', name:'Петрушка', mode:'none', unit:'', restaurants:['lavash'] },
+      { id:'i-garlic', name:'Чеснок', mode:'none', unit:'', restaurants:['lavash'] },
+      { id:'i-morkov', name:'Морковь', mode:'none', unit:'', restaurants:['lavash'] },
+      { id:'i-luk-white', name:'Лук белый', mode:'none', unit:'', restaurants:['lavash','tacos'] },
+      { id:'i-luk-red', name:'Лук красный', mode:'none', unit:'', restaurants:['lavash','tacos'] },
+      { id:'i-solenyi', name:'Солёный Огурец', mode:'none', unit:'', restaurants:['lavash','tacos'] },
+      { id:'i-jalapeno', name:'Холопеньо', mode:'none', unit:'', restaurants:['lavash','tacos'] },
+      { id:'i-griby', name:'Грибы', mode:'none', unit:'', restaurants:['lavash','tacos'] },
+      { id:'i-lettuce', name:'Лист салат', mode:'none', unit:'', restaurants:['tacos'] },
+      { id:'i-cilantro', name:'Кинза', mode:'none', unit:'', restaurants:['tacos'] },
+      { id:'i-arugula', name:'Руккола', mode:'none', unit:'', restaurants:['tacos'] },
+      { id:'i-bellpepper', name:'Болгарский перец', mode:'none', unit:'', restaurants:['tacos'] },
+      { id:'i-avocado', name:'Авокадо', mode:'none', unit:'', restaurants:['tacos'] },
+      { id:'i-beans', name:'Фасоль', mode:'none', unit:'', restaurants:['tacos'] },
+      { id:'i-corn', name:'Кукуруза', mode:'none', unit:'', restaurants:['tacos'] },
+      { id:'i-koreancarrot', name:'Корейская морковь', mode:'none', unit:'', restaurants:['tacos'] },
+    ]},
+    { id:'cat-cheese', name:'الأجبان', items:[
+      { id:'i-mozz', name:'Сыр моцарелла', mode:'stock', unit:'кг', restaurants:['lavash','tacos'] },
+      { id:'i-cheddar', name:'Сыр Чеддер', mode:'stock', unit:'кг', restaurants:['tacos'] },
+      { id:'i-sulguni', name:'Сыр сулгуни', mode:'stock', unit:'кг', restaurants:['tacos'] },
+    ]},
+    { id:'cat-basicsauce', name:'الصلصات الأساسية', items:[
+      { id:'i-mayo', name:'Майонез', mode:'none', unit:'', restaurants:['lavash'] },
+      { id:'i-smetana', name:'Сметана', mode:'none', unit:'', restaurants:['lavash'] },
+    ]},
+    { id:'cat-readysauce', name:'الصلصات الجاهزة', items:[
+      { id:'i-ketchup', name:'Кетчуп', mode:'none', unit:'', restaurants:['lavash','tacos'] },
+      { id:'i-cheesesauce', name:'Сырный', mode:'none', unit:'', restaurants:['lavash','tacos'] },
+      { id:'i-bbq', name:'Барбекю', mode:'none', unit:'', restaurants:['lavash'] },
+      { id:'i-sweetsour', name:'Кисло сладкий', mode:'none', unit:'', restaurants:['lavash'] },
+      { id:'i-honeymustard', name:'Медово-горчичны', mode:'none', unit:'', restaurants:['lavash'] },
+      { id:'i-tomatopaste', name:'Томатная паста', mode:'none', unit:'', restaurants:['lavash'] },
+      { id:'i-chililime', name:'Чили лайм соус', mode:'none', unit:'', restaurants:['tacos'] },
+      { id:'i-sriracha', name:'Шрирача', mode:'none', unit:'', restaurants:['tacos'] },
+      { id:'i-mustard', name:'Горчица', mode:'none', unit:'', restaurants:['tacos'] },
+      { id:'i-soysauce', name:'Соевый соус', mode:'none', unit:'', restaurants:['tacos'] },
+      { id:'i-teriyaki', name:'Терияки соус', mode:'none', unit:'', restaurants:['tacos'] },
+    ]},
+    { id:'cat-frozen', name:'المجمدات', items:[
+      { id:'i-fri9', name:'Фри 9 × 9', mode:'stock', unit:'', restaurants:['lavash','tacos'] },
+      { id:'i-fri6', name:'Фри 6 × 6', mode:'stock', unit:'', restaurants:['lavash'] },
+      { id:'i-nuggets', name:'Наггетсы', mode:'stock', unit:'', restaurants:['lavash','tacos'] },
+      { id:'i-strips', name:'Стрипсы', mode:'stock', unit:'', restaurants:['lavash','tacos'] },
+      { id:'i-cheesesticks', name:'Сырные палочки', mode:'stock', unit:'', restaurants:['lavash'] },
+    ]},
+    { id:'cat-bread', name:'الخبز والمعجنات', items:[
+      { id:'i-hotdogbun', name:'Булочки для хот-дог', mode:'stock', unit:'', restaurants:['tacos'] },
+      { id:'i-burgerbun', name:'Булочки для бургер', mode:'stock', unit:'', restaurants:['tacos'] },
+      { id:'i-sausage', name:'Сосиски', mode:'stock', unit:'', restaurants:['tacos'] },
+      { id:'i-flour', name:'Мука', mode:'none', unit:'', restaurants:['tacos'] },
+      { id:'i-baking', name:'Разрыхлитель', mode:'none', unit:'', restaurants:['tacos'] },
+      { id:'i-sugar', name:'Сахар', mode:'none', unit:'', restaurants:['tacos'] },
+    ]},
+    { id:'cat-packaging', name:'التغليف والأكياس', items:[
+      { id:'i-bag-big', name:'Пакеты для шаурмы (большой)', mode:'none', unit:'', restaurants:['lavash'] },
+      { id:'i-bag-small', name:'Пакеты для шаурмы (маленький)', mode:'none', unit:'', restaurants:['lavash'] },
+      { id:'i-bag-pack', name:'фасовочные пакеты для шаурмы', mode:'none', unit:'', restaurants:['lavash'] },
+      { id:'i-box-fri', name:'Коробки для Фри', mode:'none', unit:'', restaurants:['lavash'] },
+      { id:'i-foil', name:'Фольга', mode:'none', unit:'', restaurants:['lavash'] },
+      { id:'i-box-skepasti', name:'Коробки для скепасти', mode:'none', unit:'', restaurants:['lavash'] },
+      { id:'i-bag-skepasti', name:'Пакеты собой для скепасти', mode:'none', unit:'', restaurants:['lavash'] },
+      { id:'i-bag-hands', name:'Пакеты с руками', mode:'none', unit:'', restaurants:['lavash'] },
+      { id:'i-receipt-tape', name:'Кассовая лента', mode:'none', unit:'', restaurants:['lavash'] },
+      { id:'i-saucecups', name:'Соусники', mode:'none', unit:'', restaurants:['lavash','tacos'] },
+      { id:'i-taco-plates', name:'Тарелки для Тасо', mode:'none', unit:'', restaurants:['tacos'] },
+      { id:'i-disposable-plates', name:'Тарелки одноразовые', mode:'none', unit:'', restaurants:['tacos'] },
+      { id:'i-hotdog-box', name:'Коробки для хот-дог', mode:'none', unit:'', restaurants:['tacos'] },
+      { id:'i-togo-box', name:'Коробки собой', mode:'none', unit:'', restaurants:['tacos'] },
+      { id:'i-fri-paper', name:'Бумажный квадратный для Фри', mode:'none', unit:'', restaurants:['tacos'] },
+      { id:'i-giro-paper', name:'Бумажный для гиро', mode:'none', unit:'', restaurants:['tacos'] },
+      { id:'i-tray-paper', name:'Бумажный для поднос', mode:'none', unit:'', restaurants:['tacos'] },
+      { id:'i-beef-shaurma-paper', name:'Бумаги для шаурмы говядины', mode:'none', unit:'', restaurants:['tacos'] },
+      { id:'i-bigpack-bags', name:'фасовочные пакеты больших размеров', mode:'none', unit:'', restaurants:['tacos'] },
+      { id:'i-burger-skewer', name:'шпажки для бургер', mode:'none', unit:'', restaurants:['tacos'] },
+    ]},
+    { id:'cat-oils', name:'الزيوت والخل', items:[
+      { id:'i-frituroil', name:'Масло фритюр', mode:'none', unit:'', restaurants:['lavash','tacos'] },
+      { id:'i-vegoil', name:'Растительное масло', mode:'none', unit:'', restaurants:['lavash','tacos'] },
+      { id:'i-vinegar', name:'Уксус', mode:'none', unit:'', restaurants:['lavash'] },
+    ]},
+    { id:'cat-spices', name:'التوابل', items:[
+      { id:'i-salt', name:'Соль', mode:'none', unit:'', restaurants:['lavash','tacos'] },
+      { id:'i-pepper', name:'Чёрный перец', mode:'none', unit:'', restaurants:['lavash'] },
+      { id:'i-paprika', name:'Паприка', mode:'none', unit:'', restaurants:['lavash'] },
+      { id:'i-khmeli', name:'Хмели скнели', mode:'none', unit:'', restaurants:['lavash'] },
+      { id:'i-turmeric', name:'Куркум', mode:'none', unit:'', restaurants:['lavash'] },
+    ]},
+    { id:'cat-other', name:'مستلزمات أخرى', items:[
+      { id:'i-gloves', name:'Перчатки', mode:'none', unit:'', restaurants:['lavash'] },
+      { id:'i-napkins', name:'Салфетки', mode:'none', unit:'', restaurants:['lavash'] },
+      { id:'i-trashbags', name:'Мусорные пакети', mode:'none', unit:'', restaurants:['lavash'] },
+      { id:'i-dishsoap', name:'Средство Моющее для посуды', mode:'none', unit:'', restaurants:['lavash'] },
+      { id:'i-degreaser', name:'Антижир', mode:'none', unit:'', restaurants:['lavash'] },
+    ]},
+  ]
+};
+
+let catalog = null;
+let activeRestaurant = 'lavash';
+let selection = {}; // key: `${restaurantId}::${itemId}` -> {on, value}
+
+function uid(prefix){ return prefix + '-' + Math.random().toString(36).slice(2,9); }
+function selKey(rid, itemId){ return rid + '::' + itemId; }
+function isCombined(){ return activeRestaurant === COMBINED_ID; }
+function tabColor(idx){ return TAB_COLORS[idx % TAB_COLORS.length]; }
+
+const STORAGE_PREFIX = 'orderTicket::';
+
+function storageGet(key){
+  try{
+    const raw = localStorage.getItem(STORAGE_PREFIX + key);
+    return raw === null ? null : raw;
+  }catch(e){ return null; }
+}
+function storageSet(key, value){
+  try{ localStorage.setItem(STORAGE_PREFIX + key, value); return true; }
+  catch(e){ console.error('storage save failed', e); return false; }
+}
+function storageRemove(key){
+  try{ localStorage.removeItem(STORAGE_PREFIX + key); }catch(e){}
+}
+function storageAllKeys(){
+  const out = [];
+  try{
+    for(let i=0;i<localStorage.length;i++){
+      const k = localStorage.key(i);
+      if(k && k.startsWith(STORAGE_PREFIX)) out.push(k.slice(STORAGE_PREFIX.length));
+    }
+  }catch(e){}
+  return out;
+}
+
+async function loadCatalog(){
+  try{
+    const raw = storageGet(CATALOG_KEY);
+    catalog = raw ? JSON.parse(raw) : JSON.parse(JSON.stringify(defaultCatalog));
+  }catch(e){ catalog = JSON.parse(JSON.stringify(defaultCatalog)); }
+  if(!catalog.restaurants || !catalog.restaurants.length){
+    catalog.restaurants = JSON.parse(JSON.stringify(defaultCatalog.restaurants));
+  }
+  migrateCatalog();
+  activeRestaurant = catalog.restaurants[0].id;
+}
+function migrateCatalog(){
+  let changed = false;
+  const lav = catalog.restaurants.find(r=>r.id==='lavash');
+  if(lav && lav.name === 'Лаваш'){ lav.name = 'Лаваш Ну'; changed = true; }
+  const findItem = id => { for(const c of catalog.categories){ const it = c.items.find(i=>i.id===id); if(it) return it; } return null; };
+  const chicken = findItem('i-friji');
+  if(chicken && chicken.yield === undefined){ chicken.yield = 0.75; changed = true; }
+  defaultCatalog.categories.forEach(dc=>{
+    let cat = catalog.categories.find(c=>c.id===dc.id);
+    if(!cat) return;
+    dc.items.forEach(di=>{
+      if(['i-garlic','i-bag-skepasti','i-bag-hands','i-receipt-tape'].includes(di.id) && !findItem(di.id)){
+        const idx = dc.items.findIndex(x=>x.id===di.id);
+        const next = dc.items.slice(idx+1).map(x=>x.id);
+        let at = cat.items.findIndex(x=>next.includes(x.id));
+        if(at<0) at = cat.items.length;
+        cat.items.splice(at,0,JSON.parse(JSON.stringify(di)));
+        changed = true;
+      }
+    });
+  });
+  const RU = {
+    'cat-meat':'Мясо', 'cat-veg':'Овощи', 'cat-cheese':'Сыры', 'cat-basicsauce':'Соусы основные',
+    'cat-readysauce':'Соусы готовые', 'cat-frozen':'Заморозка', 'cat-bread':'Хлеб и выпечка',
+    'cat-packaging':'Упаковка', 'cat-oils':'Масла и уксус', 'cat-spices':'Специи', 'cat-other':'Прочее'
+  };
+  catalog.categories.forEach(c=>{ if(!c.ruName && RU[c.id]){ c.ruName = RU[c.id]; changed = true; } });
+  if(changed) saveCatalog();
+}
+async function saveCatalog(){
+  storageSet(CATALOG_KEY, JSON.stringify(catalog));
+}
+async function loadLastSelection(restaurantId){
+  const raw = storageGet('lastSelection::' + restaurantId);
+  return raw ? JSON.parse(raw) : null;
+}
+async function saveLastSelection(restaurantId, sel){
+  storageSet('lastSelection::' + restaurantId, JSON.stringify(sel));
+}
+function clearLastSelection(restaurantId){
+  storageRemove('lastSelection::' + restaurantId);
+}
+async function loadHistory(restaurantId){
+  const raw = storageGet('history::' + restaurantId);
+  return raw ? JSON.parse(raw) : [];
+}
+async function saveHistory(restaurantId, arr){
+  storageSet('history::' + restaurantId, JSON.stringify(arr));
+}
+
+function exportBackup(){
+  const data = {};
+  storageAllKeys().forEach(k=>{ data[k] = storageGet(k); });
+  const payload = {
+    app: 'order-ticket',
+    exportedAt: new Date().toISOString(),
+    data
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type:'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const stamp = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = `order-ticket-backup-${stamp}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=> URL.revokeObjectURL(url), 2000);
+}
+
+function importBackup(file){
+  const reader = new FileReader();
+  reader.onload = async ()=>{
+    try{
+      const parsed = JSON.parse(reader.result);
+      const data = parsed && parsed.data ? parsed.data : parsed;
+      if(!data || typeof data !== 'object') throw new Error('bad format');
+      Object.keys(data).forEach(k=>{ if(data[k] !== null && data[k] !== undefined) storageSet(k, data[k]); });
+      alert('تم استيراد النسخة الاحتياطية بنجاح. سيتم إعادة تحميل البيانات الآن.');
+      await loadCatalog();
+      selection = {};
+      renderTabs();
+      render();
+    }catch(e){
+      alert('تعذّر قراءة ملف النسخة الاحتياطية. تأكد أنه ملف صحيح تم تصديره من هذه الأداة.');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function setDateStamp(){
+  const d = new Date();
+  const months = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+  document.getElementById('dateStamp').textContent = `${d.getDate()} ${months[d.getMonth()]}`;
+}
+
+function renderTabs(){
+  const tabsEl = document.getElementById('tabs');
+  tabsEl.innerHTML = '';
+  catalog.restaurants.forEach((r, idx)=>{
+    const t = document.createElement('div');
+    const active = r.id === activeRestaurant;
+    t.className = 'tab' + (active ? ' active' : '');
+    if(active) t.style.background = tabColor(idx);
+
+    if(editMode){
+      t.style.display = 'flex';
+      t.style.alignItems = 'center';
+      t.style.gap = '5px';
+      const nameSpan = document.createElement('span');
+      nameSpan.textContent = r.name;
+      nameSpan.contentEditable = 'true';
+      nameSpan.spellcheck = false;
+      nameSpan.style.outline = 'none';
+      nameSpan.style.minWidth = '18px';
+      nameSpan.onclick = (e)=> e.stopPropagation();
+      const commit = ()=>{
+        const val = nameSpan.textContent.trim();
+        if(val && val !== r.name){ r.name = val; saveCatalog(); }
+        else nameSpan.textContent = r.name;
+      };
+      nameSpan.onblur = commit;
+      nameSpan.onkeydown = (e)=>{ if(e.key === 'Enter'){ e.preventDefault(); nameSpan.blur(); } };
+      t.appendChild(nameSpan);
+
+      if(catalog.restaurants.length > 1){
+        const del = document.createElement('span');
+        del.textContent = '✕';
+        del.style.opacity = '.7';
+        del.onclick = (e)=>{
+          e.stopPropagation();
+          if(confirm(`حذف مطعم "${r.name}"؟ (الأصناف نفسها تبقى، فقط يُزال ارتباطها بهذا المطعم)`)){
+            catalog.restaurants = catalog.restaurants.filter(x=>x.id!==r.id);
+            catalog.categories.forEach(c=> c.items.forEach(it=>{ it.restaurants = it.restaurants.filter(x=>x!==r.id); }));
+            if(activeRestaurant === r.id) activeRestaurant = catalog.restaurants[0].id;
+            saveCatalog(); renderTabs(); render();
+          }
+        };
+        t.appendChild(del);
+      }
+      t.onclick = ()=>{ activeRestaurant = r.id; renderTabs(); render(); };
+    } else {
+      t.textContent = r.name;
+      t.onclick = ()=>{ activeRestaurant = r.id; renderTabs(); render(); };
+    }
+    tabsEl.appendChild(t);
+  });
+  const combo = document.createElement('div');
+  combo.className = 'tab combined' + (isCombined() ? ' active' : '');
+  if(isCombined()) combo.style.background = 'var(--avocado)';
+  combo.textContent = 'الطلب الموحد';
+  combo.onclick = ()=>{ activeRestaurant = COMBINED_ID; renderTabs(); render(); };
+  tabsEl.appendChild(combo);
+
+  if(!editMode){
+    const addTab = document.createElement('div');
+    addTab.className = 'tab add';
+    addTab.textContent = '+ مطعم';
+    addTab.onclick = ()=>{
+      const name = prompt('اسم المطعم الجديد (مثال: Тасо):');
+      if(!name || !name.trim()) return;
+      const id = uid('r');
+      catalog.restaurants.push({ id, name: name.trim() });
+      activeRestaurant = id;
+      saveCatalog(); renderTabs(); render();
+    };
+    tabsEl.appendChild(addTab);
+  }
+}
+
+function escapeHtml(s){
+  return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function fmtNum(n){
+  if(Number.isInteger(n)) return String(n);
+  return n.toFixed(2).replace(/0+$/,'').replace(/\.$/,'');
+}
+
+function buildItemEl(item, cat){
+      const key = selKey(activeRestaurant, item.id);
+      if(!selection[key]) selection[key] = { on:false, value:'', adhoc:'', showAdhoc:false };
+      const sel = selection[key];
+      const itemEl = document.createElement('div');
+      itemEl.className = 'item' + (sel.on ? ' on' : '');
+
+      const row = document.createElement('div');
+      row.className = 'item-row';
+      row.innerHTML = `${editMode ? '<span class="drag-handle">⋮⋮</span>' : ''}<span class="check">✓</span><span class="item-name" ${editMode?'contenteditable="true"':''}>${escapeHtml(item.name)}${item.required ? '<span class="required-mark">*</span>' : ''}</span>`;
+      const nameEl = row.querySelector('.item-name');
+      if(editMode){
+        nameEl.onclick = (e)=> e.stopPropagation();
+        nameEl.onblur = ()=>{
+          const val = nameEl.textContent.replace('*','').trim();
+          if(val) item.name = val; else nameEl.textContent = item.name;
+          saveCatalog();
+        };
+        nameEl.onkeydown = (e)=>{ if(e.key === 'Enter'){ e.preventDefault(); nameEl.blur(); } };
+      }
+      row.onclick = ()=>{ sel.on = !sel.on; render(); };
+      itemEl.appendChild(row);
+
+      if(editMode){
+        const handle = row.querySelector('.drag-handle');
+        handle.draggable = true;
+        handle.ondragstart = (e)=>{
+          e.dataTransfer.setData('text/plain', item.id);
+          e.dataTransfer.effectAllowed = 'move';
+          itemEl.classList.add('dragging');
+        };
+        handle.ondragend = ()=> itemEl.classList.remove('dragging');
+        itemEl.ondragover = (e)=>{ e.preventDefault(); e.dataTransfer.dropEffect = 'move'; };
+        itemEl.ondrop = (e)=>{
+          e.preventDefault();
+          const draggedId = e.dataTransfer.getData('text/plain');
+          if(!draggedId || draggedId === item.id) return;
+          const fromIdx = cat.items.findIndex(it=>it.id===draggedId);
+          const toIdx = cat.items.findIndex(it=>it.id===item.id);
+          if(fromIdx < 0 || toIdx < 0) return;
+          const [moved] = cat.items.splice(fromIdx, 1);
+          cat.items.splice(toIdx, 0, moved);
+          saveCatalog(); render();
+        };
+      }
+
+      const starBtn = document.createElement('button');
+      starBtn.className = 'item-edit-btn fav-btn' + (isFav(item) ? ' on' : '');
+      starBtn.textContent = isFav(item) ? '★' : '☆';
+      starBtn.title = 'مفضلة';
+      starBtn.onclick = (e)=>{ e.stopPropagation(); toggleFav(item); };
+      row.appendChild(starBtn);
+
+      if(item.mode === 'none'){
+        const qBtn = document.createElement('button');
+        qBtn.className = 'item-edit-btn item-qmark';
+        qBtn.title = 'إضافة كمية متبقية لهذا الصنف (اختياري)';
+        qBtn.textContent = '؟';
+        qBtn.style.opacity = sel.showAdhoc ? '1' : '.55';
+        qBtn.style.color = sel.showAdhoc ? 'var(--amber)' : '';
+        qBtn.onclick = (e)=>{ e.stopPropagation(); sel.showAdhoc = !sel.showAdhoc; if(sel.showAdhoc) sel.on = true; render(); };
+        row.appendChild(qBtn);
+      }
+
+      if(editMode){
+        const editBtn = document.createElement('button');
+        editBtn.className = 'item-edit-btn'; editBtn.textContent = '✕';
+        editBtn.onclick = (e)=>{ e.stopPropagation(); cat.items = cat.items.filter(it=>it.id!==item.id); saveCatalog(); render(); };
+        row.appendChild(editBtn);
+      }
+
+      if(item.mode !== 'none'){
+        const field = document.createElement('div');
+        const missing = item.required && sel.on && !sel.value.trim();
+        field.className = 'item-field has-field' + (missing ? ' missing' : '');
+        const prefix = item.mode === 'stock' ? 'есть' : '';
+        field.innerHTML = `${prefix ? `<span class="suffix">${prefix}</span>` : ''}<input type="text" inputmode="decimal" placeholder="اختياري" value="${escapeHtml(sel.value)}">${item.unit ? `<span class="suffix">${escapeHtml(item.unit)}</span>` : ''}`;
+        const input = field.querySelector('input');
+        input.oninput = ()=>{
+          sel.value = input.value;
+          field.classList.toggle('missing', item.required && sel.on && !sel.value.trim());
+          updateCounters();
+        };
+        input.onclick = (e)=> e.stopPropagation();
+        itemEl.appendChild(field);
+        if(item.yield){
+          const note = document.createElement('div');
+          note.className = 'yield-note';
+          const upd = ()=>{
+            const raw = parseFloat((sel.value||'').replace(',','.'));
+            if(sel.on && !isNaN(raw) && raw > 0){
+              note.classList.remove('empty');
+              note.innerHTML = `🔥 بعد الشواء ≈ <b>${fmtNum(Math.round(raw*item.yield*100)/100)}${escapeHtml(item.unit||'')}</b> <span style="color:var(--ink-dim)">(نيء ${fmtNum(raw)} × ${Math.round(item.yield*100)}%)</span>`;
+            } else { note.classList.add('empty'); note.innerHTML=''; }
+          };
+          upd();
+          input.addEventListener('input', upd);
+          itemEl.appendChild(note);
+        }
+      } else if(sel.showAdhoc){
+        const field = document.createElement('div');
+        field.className = 'item-field has-field';
+        field.innerHTML = `<input type="text" placeholder="اكتب الكمية المتبقية (اختياري)" style="width:100%;" value="${escapeHtml(sel.adhoc)}">`;
+        const input = field.querySelector('input');
+        input.oninput = ()=>{ sel.adhoc = input.value; updateCounters(); };
+        input.onclick = (e)=> e.stopPropagation();
+        itemEl.appendChild(field);
+      }
+
+      if(editMode){
+        const modeRow = document.createElement('div');
+        modeRow.className = 'item-tags';
+        modeRow.style.direction = 'rtl';
+        const modeSelect = document.createElement('select');
+        modeSelect.className = 'item-mode-select';
+        modeSelect.innerHTML = `
+          <option value="none">بدون رقم</option>
+          <option value="amount">كمية للطلب</option>
+          <option value="stock">المتبقي بالمحل</option>
+        `;
+        modeSelect.value = item.mode;
+        modeSelect.onclick = (e)=> e.stopPropagation();
+        modeSelect.onchange = ()=>{
+          item.mode = modeSelect.value;
+          if(item.mode === 'none') item.unit = '';
+          saveCatalog(); render();
+        };
+        modeRow.appendChild(modeSelect);
+        if(item.mode !== 'none'){
+          const unitInput = document.createElement('input');
+          unitInput.className = 'item-unit-input';
+          unitInput.placeholder = 'الوحدة (مثل كغ)';
+          unitInput.value = item.unit || '';
+          unitInput.style.width = '110px';
+          unitInput.onclick = (e)=> e.stopPropagation();
+          unitInput.onblur = ()=>{ item.unit = unitInput.value.trim(); saveCatalog(); };
+          modeRow.appendChild(unitInput);
+        }
+        if(item.mode === 'amount'){
+          const yl = document.createElement('input');
+          yl.className = 'item-unit-input';
+          yl.type = 'number'; yl.min = '1'; yl.max = '100';
+          yl.placeholder = 'نسبة الوزن بعد الطبخ %';
+          yl.title = 'نسبة الوزن بعد الشواء (مثلاً 75). اتركه فارغاً لإلغاء الحساب';
+          yl.value = item.yield ? Math.round(item.yield*100) : '';
+          yl.style.width = '150px';
+          yl.onclick = (e)=> e.stopPropagation();
+          yl.onblur = ()=>{
+            const v = parseFloat(yl.value);
+            if(v > 0 && v <= 100) item.yield = v/100; else delete item.yield;
+            saveCatalog(); render();
+          };
+          modeRow.appendChild(yl);
+        }
+        itemEl.appendChild(modeRow);
+
+        const tagsEl = document.createElement('div');
+        tagsEl.className = 'item-tags';
+        catalog.restaurants.forEach(r=>{
+          const member = item.restaurants.includes(r.id);
+          const tag = document.createElement('span');
+          tag.className = 'item-tag' + (member ? ' member' : '');
+          tag.textContent = r.name;
+          tag.onclick = (e)=>{
+            e.stopPropagation();
+            if(member) item.restaurants = item.restaurants.filter(x=>x!==r.id);
+            else item.restaurants.push(r.id);
+            saveCatalog(); render();
+          };
+          tagsEl.appendChild(tag);
+        });
+        itemEl.appendChild(tagsEl);
+      }
+
+      return itemEl;
+}
+
+function isFav(item){ return (item.favs || []).includes(activeRestaurant); }
+function toggleFav(item){
+  item.favs = item.favs || [];
+  if(item.favs.includes(activeRestaurant)) item.favs = item.favs.filter(x=>x!==activeRestaurant);
+  else item.favs.push(activeRestaurant);
+  saveCatalog(); render();
+}
+function getHistorySync(rid){
+  try{ const raw = storageGet('history::' + rid); return raw ? JSON.parse(raw) : []; }catch(e){ return []; }
+}
+function dayNum(d){ return Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000); }
+function historyLines(text){ return (text||'').split('\n').map(l=>l.trim()).filter(l=> l && !l.startsWith('*')); }
+function computeSuggestions(){
+  const rid = activeRestaurant;
+  const hist = getHistorySync(rid);
+  if(hist.length < 3) return { enough:false, list:[] };
+  const today = dayNum(new Date());
+  const appear = {};
+  hist.forEach(h=>{
+    const day = dayNum(new Date(h.date));
+    const lines = historyLines(h.text);
+    catalog.categories.forEach(cat=> cat.items.forEach(it=>{
+      if(!it.restaurants.includes(rid)) return;
+      if(lines.some(l=> l === it.name || l.startsWith(it.name + ' '))){
+        (appear[it.id] = appear[it.id] || new Set()).add(day);
+      }
+    }));
+  });
+  const list = [];
+  catalog.categories.forEach(cat=> cat.items.forEach(it=>{
+    if(!it.restaurants.includes(rid)) return;
+    const set = appear[it.id];
+    if(!set || set.size < 2) return;
+    const sel = selection[selKey(rid, it.id)];
+    if(sel && sel.on) return;
+    const days = Array.from(set).sort((a,b)=>a-b);
+    const avg = (days[days.length-1] - days[0]) / (days.length - 1);
+    const since = today - days[days.length-1];
+    const every = Math.max(1, Math.round(avg));
+    if(since < every) return;
+    if(since > avg*3 + 7) return;
+    list.push({ item: it, every, since, score: since/avg });
+  }));
+  list.sort((a,b)=> b.score - a.score);
+  return { enough:true, list: list.slice(0,12) };
+}
+function ensureSel(item){
+  const key = selKey(activeRestaurant, item.id);
+  if(!selection[key]) selection[key] = { on:false, value:'', adhoc:'', showAdhoc:false };
+  return selection[key];
+}
+function renderSuggestions(wrap, q){
+  if(q) return;
+  const { enough, list } = computeSuggestions();
+  if(!enough){
+    const n = document.createElement('div');
+    n.className = 'sug-note';
+    n.textContent = '💡 الاقتراحات تظهر بعد حفظ 3 طلبات لهذا المطعم';
+    wrap.appendChild(n);
+    return;
+  }
+  if(!list.length) return;
+  const box = document.createElement('div');
+  box.className = 'sug-box' + (collapsedCats.has('__sug__') ? ' collapsed' : '');
+  const head = document.createElement('div');
+  head.className = 'sug-head';
+  head.innerHTML = `<span>💡 اقتراحات من السجل (${list.length})</span>`;
+  const all = document.createElement('button');
+  all.className = 'sug-all'; all.textContent = '+ إضافة الكل';
+  all.onclick = (e)=>{ e.stopPropagation(); list.forEach(x=>{ ensureSel(x.item).on = true; }); render(); };
+  head.appendChild(all);
+  head.onclick = ()=>{ if(collapsedCats.has('__sug__')) collapsedCats.delete('__sug__'); else collapsedCats.add('__sug__'); render(); };
+  box.appendChild(head);
+  const chips = document.createElement('div');
+  chips.className = 'sug-chips';
+  list.forEach(x=>{
+    const b = document.createElement('button');
+    b.className = 'sug-chip';
+    b.innerHTML = `<span class="n">${escapeHtml(x.item.name)}</span><span class="r">كل ${x.every} أيام تقريبًا · آخر مرة قبل ${x.since} يوم</span>`;
+    b.onclick = ()=>{ ensureSel(x.item).on = true; render(); };
+    chips.appendChild(b);
+  });
+  box.appendChild(chips);
+  wrap.appendChild(box);
+}
+function renderFavorites(wrap, q){
+  const favItems = [];
+  catalog.categories.forEach(cat=> cat.items.forEach(it=>{
+    if(!it.restaurants.includes(activeRestaurant) || !isFav(it)) return;
+    if(q && !it.name.toLowerCase().includes(q)) return;
+    favItems.push({ it, cat });
+  }));
+  if(!favItems.length) return;
+  const catEl = document.createElement('div');
+  catEl.className = 'cat' + (collapsedCats.has('__fav__') && !q ? ' collapsed' : '');
+  const head = document.createElement('div');
+  head.className = 'cat-head';
+  head.innerHTML = `<span class="cat-name">★ المفضلة</span><span class="cat-chevron">▾</span>`;
+  head.onclick = ()=>{ if(collapsedCats.has('__fav__')) collapsedCats.delete('__fav__'); else collapsedCats.add('__fav__'); render(); };
+  catEl.appendChild(head);
+  const body = document.createElement('div');
+  body.className = 'cat-body';
+  favItems.forEach(({it, cat})=> body.appendChild(buildItemEl(it, cat)));
+  catEl.appendChild(body);
+  wrap.appendChild(catEl);
+}
+
+async function render(){
+  document.getElementById('repeatBtn').style.display = isCombined() ? 'none' : 'inline-block';
+  document.getElementById('addCatRow').style.display = (editMode && !isCombined()) ? 'flex' : 'none';
+  document.getElementById('genBtn').classList.toggle('combo-mode', isCombined());
+  document.getElementById('genBtn').textContent = isCombined() ? 'إنشاء نص الطلب الموحد' : 'إنشاء نص الطلب';
+
+  const wrap = document.getElementById('categories');
+  wrap.innerHTML = '';
+  const q = searchQuery.trim().toLowerCase();
+
+  if(isCombined()){
+    renderCombined(wrap, q);
+    updateCounters();
+    return;
+  }
+
+  if(!editMode){
+    renderSuggestions(wrap, q);
+    renderFavorites(wrap, q);
+  }
+
+  catalog.categories.forEach(cat=>{
+    const visibleItems = cat.items.filter(it=>{
+      const belongs = editMode || it.restaurants.includes(activeRestaurant);
+      if(!belongs) return false;
+      if(!editMode && isFav(it)) return false;
+      if(q && !it.name.toLowerCase().includes(q)) return false;
+      return true;
+    });
+    if(visibleItems.length === 0 && (q || !editMode)) return;
+
+    const catEl = document.createElement('div');
+    catEl.className = 'cat' + (collapsedCats.has(cat.id) && !q ? ' collapsed' : '');
+
+    const head = document.createElement('div');
+    head.className = 'cat-head';
+    head.innerHTML = `<span class="cat-name" ${editMode?'contenteditable="true"':''}>${escapeHtml(cat.name)}</span><span class="cat-chevron">▾</span>`;
+    const nameEl = head.querySelector('.cat-name');
+    if(editMode){
+      nameEl.onblur = ()=>{ cat.name = nameEl.textContent.trim() || cat.name; saveCatalog(); };
+      nameEl.onclick = (e)=> e.stopPropagation();
+    }
+    head.onclick = (e)=>{
+      if(e.target === nameEl) return;
+      if(collapsedCats.has(cat.id)) collapsedCats.delete(cat.id); else collapsedCats.add(cat.id);
+      render();
+    };
+    if(editMode){
+      const del = document.createElement('button');
+      del.className = 'cat-del'; del.textContent = 'حذف الفئة';
+      del.onclick = (e)=>{ e.stopPropagation(); if(confirm('حذف هذه الفئة وكل عناصرها؟')){ catalog.categories = catalog.categories.filter(c=>c.id!==cat.id); saveCatalog(); render(); } };
+      head.appendChild(del);
+    }
+    catEl.appendChild(head);
+    if(editMode){
+      const ru = document.createElement('input');
+      ru.className = 'cat-ru-input';
+      ru.placeholder = 'عنوان الفئة بالروسية داخل نص الطلب (مثال: Овощи)';
+      ru.value = cat.ruName || '';
+      ru.onclick = (e)=> e.stopPropagation();
+      ru.onblur = ()=>{ const v = ru.value.trim(); if(v) cat.ruName = v; else delete cat.ruName; saveCatalog(); };
+      catEl.appendChild(ru);
+    }
+
+    const body = document.createElement('div');
+    body.className = 'cat-body';
+
+    visibleItems.forEach(item=> body.appendChild(buildItemEl(item, cat)));
+
+    if(editMode && !q){
+      const addRow = document.createElement('div');
+      addRow.className = 'add-item';
+      const tagsHtml = catalog.restaurants.map(r=>`<span class="item-tag${r.id===activeRestaurant?' member':''}" data-rid="${r.id}">${escapeHtml(r.name)}</span>`).join('');
+      addRow.innerHTML = `
+        <div class="row1">
+          <input type="text" placeholder="اسم عنصر جديد (بالروسية)">
+          <select>
+            <option value="none">بدون رقم</option>
+            <option value="amount">كمية للطلب</option>
+            <option value="stock">المتبقي بالمحل</option>
+          </select>
+          <button class="add-btn">+</button>
+        </div>
+        <div class="row2">${tagsHtml}</div>
+      `;
+      const nameInput = addRow.querySelector('input');
+      const modeSelect = addRow.querySelector('select');
+      const addBtn = addRow.querySelector('.add-btn');
+      const rowTags = addRow.querySelectorAll('.row2 .item-tag');
+      const chosenR = new Set([activeRestaurant]);
+      rowTags.forEach(t=>{
+        t.onclick = ()=>{
+          const rid = t.dataset.rid;
+          if(chosenR.has(rid)){ chosenR.delete(rid); t.classList.remove('member'); }
+          else { chosenR.add(rid); t.classList.add('member'); }
+        };
+      });
+      addBtn.onclick = ()=>{
+        const name = nameInput.value.trim();
+        if(!name) return;
+        const mode = modeSelect.value;
+        cat.items.push({ id: uid('i'), name, mode, unit: mode==='none' ? '' : 'кг', restaurants: Array.from(chosenR) });
+        saveCatalog(); render();
+      };
+      body.appendChild(addRow);
+    }
+
+    catEl.appendChild(body);
+    wrap.appendChild(catEl);
+  });
+
+  updateCounters();
+}
+
+function combinedContributions(item){
+  // returns [{restaurant, value, adhoc}] for restaurants where item is on
+  const out = [];
+  catalog.restaurants.forEach(r=>{
+    if(!item.restaurants.includes(r.id)) return;
+    const sel = selection[selKey(r.id, item.id)];
+    if(sel && sel.on) out.push({ restaurant:r, value:(sel.value||'').trim(), adhoc:(sel.adhoc||'').trim() });
+  });
+  return out;
+}
+
+function combinedLineForItem(item){
+  const contributions = combinedContributions(item);
+  if(contributions.length === 0) return null;
+
+  if(item.mode === 'none'){
+    const notes = contributions.filter(c=>c.adhoc).map(c=>({ name:c.restaurant.name, text:c.adhoc }));
+    if(notes.length === 0){
+      const breakdown = contributions.length > 1 ? contributions.map(c=>c.restaurant.name).join(' + ') : null;
+      return { line:item.name, breakdown };
+    }
+    const allNumeric = notes.every(n=> /^-?\d+([.,]\d+)?$/.test(n.text));
+    if(allNumeric){
+      const sum = notes.reduce((a,n)=> a + parseFloat(n.text.replace(',', '.')), 0);
+      const breakdown = notes.length > 1 ? notes.map(n=> `${n.name} ${n.text}`).join(' + ') : null;
+      return { line: item.name + ' ' + fmtNum(sum), breakdown };
+    }
+    const breakdown = notes.map(n=> `${n.name}: ${n.text}`).join(' | ');
+    return { line:item.name, breakdown };
+  }
+
+  const nums = contributions.map(c=>parseFloat(c.value)).filter(n=>!isNaN(n));
+  const hasAny = nums.length > 0;
+  const sum = nums.reduce((a,b)=>a+b, 0);
+  const suffixWord = item.mode === 'stock' ? 'есть ' : '';
+  let line = item.name;
+  if(hasAny) line += ' ' + suffixWord + fmtNum(sum) + (item.unit||'');
+  let breakdown = null;
+  if(contributions.length > 1){
+    breakdown = contributions.map(c=> `${c.restaurant.name} ${c.value || '—'}`).join(' + ');
+  }
+  return { line, breakdown };
+}
+
+function renderCombined(wrap, q){
+  if(catalog.restaurants.length < 2){
+    wrap.innerHTML = `<div class="combo-hint">أضف مطعمًا ثانيًا (زر «+ مطعم») واربط الأصناف المشتركة بينهما من وضع التعديل ⚙︎<br>حينها ستُجمع كمياتها هنا تلقائيًا.</div>`;
+    return;
+  }
+  let any = false;
+  catalog.categories.forEach(cat=>{
+    const rows = [];
+    cat.items.forEach(item=>{
+      if(q && !item.name.toLowerCase().includes(q)) return;
+      const res = combinedLineForItem(item);
+      if(!res) return;
+      any = true;
+      rows.push({ item, res });
+    });
+    if(rows.length === 0) return;
+
+    const catEl = document.createElement('div');
+    catEl.className = 'cat' + (collapsedCats.has(cat.id) && !q ? ' collapsed' : '');
+    const head = document.createElement('div');
+    head.className = 'cat-head';
+    head.innerHTML = `<span class="cat-name">${escapeHtml(cat.name)}</span><span class="cat-chevron">▾</span>`;
+    head.onclick = ()=>{ if(collapsedCats.has(cat.id)) collapsedCats.delete(cat.id); else collapsedCats.add(cat.id); render(); };
+    catEl.appendChild(head);
+
+    const body = document.createElement('div');
+    body.className = 'cat-body';
+    rows.forEach(({item, res})=>{
+      const itemEl = document.createElement('div');
+      itemEl.className = 'item on';
+      itemEl.innerHTML = `<div class="item-row" style="cursor:default;"><span class="check">✓</span><span class="item-name">${escapeHtml(res.line)}</span></div>`;
+      if(res.breakdown){
+        const bd = document.createElement('div');
+        bd.className = 'combo-breakdown';
+        bd.innerHTML = `<b>مجموع:</b> ${escapeHtml(res.breakdown)}`;
+        itemEl.appendChild(bd);
+      }
+      body.appendChild(itemEl);
+    });
+    catEl.appendChild(body);
+    wrap.appendChild(catEl);
+  });
+  if(!any){
+    wrap.innerHTML = `<div class="combo-hint">لا يوجد أصناف محددة بعد.<br>اختر الأصناف من تبويبات المطاعم أولًا، وستظهر هنا مجمّعة تلقائيًا.</div>`;
+  }
+}
+
+function headingsOn(){ return storageGet('headings') !== '0'; }
+function catTitle(cat){ return cat.ruName || cat.name; }
+
+function buildGroups(combined){
+  const groups = [];
+  catalog.categories.forEach(cat=>{
+    const lines = [];
+    cat.items.forEach(item=>{
+      if(combined){
+        const res = combinedLineForItem(item);
+        if(res) lines.push(res.line);
+        return;
+      }
+      if(!item.restaurants.includes(activeRestaurant)) return;
+      const sel = selection[selKey(activeRestaurant, item.id)];
+      if(!sel || !sel.on) return;
+      let line = item.name;
+      if(item.mode === 'amount' && sel.value.trim()) line += ' ' + sel.value.trim() + (item.unit||'');
+      else if(item.mode === 'stock' && sel.value.trim()) line += ' есть ' + sel.value.trim() + (item.unit||'');
+      else if(item.mode === 'none' && sel.adhoc && sel.adhoc.trim()) line += ' ' + sel.adhoc.trim();
+      lines.push(line);
+    });
+    if(lines.length) groups.push({ cat, lines });
+  });
+  return groups;
+}
+
+function groupsToText(groups, withHeadings){
+  if(!withHeadings) return groups.flatMap(g=>g.lines).join('\n');
+  return groups.map(g=> '*' + catTitle(g.cat) + '*\n' + g.lines.join('\n')).join('\n\n');
+}
+
+function buildLines(){ return buildGroups(false).flatMap(g=>g.lines); }
+function buildCombinedLines(){ return buildGroups(true).flatMap(g=>g.lines); }
+
+function getMissingRequired(){
+  const missing = [];
+  const restaurantsToCheck = isCombined() ? catalog.restaurants.map(r=>r.id) : [activeRestaurant];
+  catalog.categories.forEach(cat=>{
+    cat.items.forEach(item=>{
+      if(!item.required) return;
+      restaurantsToCheck.forEach(rid=>{
+        if(!item.restaurants.includes(rid)) return;
+        const sel = selection[selKey(rid, item.id)];
+        if(sel && sel.on && !(sel.value||'').trim() && !missing.includes(item.name)) missing.push(item.name);
+      });
+    });
+  });
+  return missing;
+}
+
+function updateCounters(){
+  const groups = buildGroups(isCombined());
+  const lines = groups.flatMap(g=>g.lines);
+  document.getElementById('countSel').textContent = lines.length;
+  document.getElementById('countChar').textContent = groupsToText(groups, headingsOn()).length;
+  const missing = getMissingRequired();
+  document.getElementById('genBtn').disabled = lines.length === 0 || missing.length > 0;
+  const hintEl = document.getElementById('requiredHint');
+  if(missing.length > 0){
+    hintEl.style.display = 'block';
+    hintEl.textContent = `⚠ الرجاء إدخال الكمية: ${missing.join('، ')}`;
+  } else {
+    hintEl.style.display = 'none';
+  }
+}
+
+document.getElementById('gearBtn').onclick = ()=>{
+  editMode = !editMode;
+  const btn = document.getElementById('gearBtn');
+  btn.style.background = editMode ? 'var(--chili)' : 'var(--card)';
+  btn.style.color = editMode ? '#fff' : 'var(--ink-soft)';
+  if(editMode && isCombined()) activeRestaurant = catalog.restaurants[0].id;
+  renderTabs(); render();
+};
+
+document.getElementById('addCatBtn').onclick = ()=>{
+  const input = document.getElementById('newCatName');
+  const name = input.value.trim();
+  if(!name) return;
+  catalog.categories.push({ id: uid('cat'), name, items: [] });
+  input.value = '';
+  saveCatalog(); render();
+};
+
+document.getElementById('searchInput').oninput = (e)=>{ searchQuery = e.target.value; render(); };
+
+document.getElementById('genBtn').onclick = async ()=>{
+  lastGroups = buildGroups(isCombined());
+  const text = groupsToText(lastGroups, headingsOn());
+  document.getElementById('headingsToggle').checked = headingsOn();
+  document.getElementById('headingsRow').style.display = 'flex';
+  document.getElementById('outputBox').value = text;
+  document.getElementById('overlay').classList.add('show');
+  const histKey = isCombined() ? COMBINED_ID : activeRestaurant;
+  if(!isCombined()) await saveLastSelection(activeRestaurant, filterSelectionForRestaurant());
+  const hist = await loadHistory(histKey);
+  hist.unshift({ date: new Date().toISOString(), text });
+  await saveHistory(histKey, hist.slice(0, 20));
+};
+document.getElementById('headingsToggle').onchange = (e)=>{
+  storageSet('headings', e.target.checked ? '1' : '0');
+  if(lastGroups) document.getElementById('outputBox').value = groupsToText(lastGroups, e.target.checked);
+  updateCounters();
+};
+document.getElementById('closeBtn').onclick = ()=> document.getElementById('overlay').classList.remove('show');
+document.getElementById('copyBtn').onclick = async ()=>{
+  const text = document.getElementById('outputBox').value;
+  try{ await navigator.clipboard.writeText(text); showToast('تم نسخ النص'); }
+  catch(e){ document.getElementById('outputBox').select(); document.execCommand('copy'); showToast('تم نسخ النص'); }
+};
+document.getElementById('shareBtn').onclick = async ()=>{
+  const text = document.getElementById('outputBox').value;
+  if(navigator.share){ try{ await navigator.share({ text }); }catch(e){} }
+  else{ await navigator.clipboard.writeText(text).catch(()=>{}); showToast('تم النسخ — الصق في واتساب'); }
+};
+
+function filterSelectionForRestaurant(){
+  const out = {};
+  Object.keys(selection).forEach(k=>{
+    if(k.startsWith(activeRestaurant + '::')){
+      const itemId = k.split('::')[1];
+      out[itemId] = selection[k];
+    }
+  });
+  return out;
+}
+
+document.getElementById('repeatBtn').onclick = async ()=>{
+  if(isCombined()) return;
+  const last = await loadLastSelection(activeRestaurant);
+  if(!last){ showToast('لا يوجد طلب سابق لهذا المطعم'); return; }
+  Object.keys(last).forEach(itemId=>{ selection[selKey(activeRestaurant, itemId)] = last[itemId]; });
+  render();
+  showToast('تم استرجاع الطلب السابق');
+};
+
+document.getElementById('histBtn').onclick = async ()=>{
+  const histKey = isCombined() ? COMBINED_ID : activeRestaurant;
+  const hist = await loadHistory(histKey);
+  const listEl = document.getElementById('histList');
+  const restName = isCombined() ? 'الطلب الموحد' : (catalog.restaurants.find(r=>r.id===activeRestaurant)||{}).name || '';
+  document.getElementById('histSub').textContent = `آخر الطلبات — ${restName}`;
+  listEl.innerHTML = '';
+  if(!hist.length){
+    listEl.innerHTML = '<div class="hist-empty">لا يوجد سجل بعد</div>';
+  } else {
+    hist.forEach(h=>{
+      const row = document.createElement('div');
+      row.className = 'hist-row';
+      const d = new Date(h.date);
+      const dateStr = d.toLocaleDateString('ru-RU', { day:'2-digit', month:'2-digit', year:'numeric' });
+      const preview = historyLines(h.text).slice(0,3).join(', ');
+      row.innerHTML = `<div class="hd"><div class="hdate">${dateStr}</div><div class="hpreview">${escapeHtml(preview)}</div></div>`;
+      row.onclick = ()=>{
+        lastGroups = null;
+        document.getElementById('headingsRow').style.display = 'none';
+        document.getElementById('outputBox').value = h.text;
+        document.getElementById('histOverlay').classList.remove('show');
+        document.getElementById('overlay').classList.add('show');
+      };
+      listEl.appendChild(row);
+    });
+  }
+  document.getElementById('histOverlay').classList.add('show');
+};
+document.getElementById('histCloseBtn').onclick = ()=> document.getElementById('histOverlay').classList.remove('show');
+
+document.getElementById('backupBtn').onclick = ()=> document.getElementById('backupOverlay').classList.add('show');
+document.getElementById('backupCloseBtn').onclick = ()=> document.getElementById('backupOverlay').classList.remove('show');
+document.getElementById('exportBtn').onclick = ()=>{ exportBackup(); showToast('تم تنزيل النسخة الاحتياطية'); };
+document.getElementById('importBtn').onclick = ()=> document.getElementById('importFile').click();
+document.getElementById('importFile').onchange = (e)=>{
+  const file = e.target.files[0];
+  if(file) importBackup(file);
+  e.target.value = '';
+};
+document.getElementById('clearLastBtn').onclick = ()=>{
+  if(isCombined()){ showToast('اختر مطعمًا أولًا'); return; }
+  const restName = (catalog.restaurants.find(r=>r.id===activeRestaurant)||{}).name || '';
+  if(confirm(`مسح آخر طلب محفوظ لمطعم "${restName}"؟ (هذا لا يمسح السجل ولا القائمة، فقط زر «↺ سابق»)`)){
+    clearLastSelection(activeRestaurant);
+    showToast('تم مسح آخر طلب محفوظ');
+  }
+};
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=> t.classList.remove('show'), 1800);
+}
+
+(async function init(){
+  setDateStamp();
+  await loadCatalog();
+  renderTabs();
+  render();
+})();
+</script>
+</body>
+</html>
